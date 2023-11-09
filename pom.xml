@@ -66,6 +66,35 @@
 					</excludes>
 				</configuration>
 			</plugin>
+			<plugin>
+				<groupId>com.microsoft.azure</groupId>
+				<artifactId>azure-spring-apps-maven-plugin</artifactId>
+				<version>1.17.0</version>
+				<configuration>
+					<subscriptionId>1b8964d1-7501-496d-a0fd-4d7d3ee7ec13</subscriptionId>
+					<resourceGroup>UNIVEN-RG-01</resourceGroup>
+					<clusterName>ictspring</clusterName>
+					<appName>accessreview</appName>
+					<isPublic>true</isPublic>
+					<deployment>
+						<cpu>1</cpu>
+						<memoryInGB>1</memoryInGB>
+						<instanceCount>1</instanceCount>
+						<runtimeVersion>Java 17</runtimeVersion>
+						<resources>
+							<resource>
+								<filtering/>
+								<mergeId/>
+								<targetPath/>
+								<directory>${project.basedir}/target</directory>
+								<includes>
+									<include>*.jar</include>
+								</includes>
+							</resource>
+						</resources>
+					</deployment>
+				</configuration>
+			</plugin>
 		</plugins>
 	</build>
 
