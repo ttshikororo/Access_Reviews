@@ -35,7 +35,7 @@ public class ITSAccessReviewService {
 
     public ITSAccessReviewer retrieveReviewer(String staffNumber)
     {
-        String its_url = "http://localhost:8286/api/staff/";
+        String its_url = "https://univenproduction-itsintegration.private.azuremicroservices.io/api/staff/";
         ITSAccessReviewer reviewers = webClient
                 .get()
                 .uri(its_url + staffNumber )
@@ -110,7 +110,7 @@ public class ITSAccessReviewService {
 
     public void getCommunicationDetails()
     {
-        String its_url = "http://localhost:8286/api/communication";
+        String its_url = "https://univenproduction-itsintegration.private.azuremicroservices.io/api/communication";
 
         List<CommunicationDetails> communicationDetails = webClient
                 .get()
@@ -135,7 +135,7 @@ public class ITSAccessReviewService {
     }
     public void retrieveAllUser()
     {
-        String its_url = "http://localhost:8286/api/users";
+        String its_url = "https://univenproduction-itsintegration.private.azuremicroservices.io/api/users";
 
 
         List<User> users = webClient
@@ -229,7 +229,7 @@ public class ITSAccessReviewService {
     }
     public void saveMenuOptions()
     {
-        String its_url = "http://localhost:8286/api/menus";
+        String its_url = "https://univenproduction-itsintegration.private.azuremicroservices.io/api/menus";
         List<ITSAccessReviewMenu> reviewMenu = webClient
                 .get()
                 .uri(its_url )

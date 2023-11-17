@@ -72,8 +72,8 @@
 				<version>1.17.0</version>
 				<configuration>
 					<subscriptionId>1b8964d1-7501-496d-a0fd-4d7d3ee7ec13</subscriptionId>
-					<resourceGroup>UNIVEN-RG-01</resourceGroup>
-					<clusterName>ictspring</clusterName>
+					<resourceGroup>AZP-SPRING-RG-01</resourceGroup>
+					<clusterName>univenproduction</clusterName>
 					<appName>accessreview</appName>
 					<isPublic>true</isPublic>
 					<deployment>
