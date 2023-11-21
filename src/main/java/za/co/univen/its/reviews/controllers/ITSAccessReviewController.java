@@ -84,6 +84,11 @@ public class ITSAccessReviewController {
     }
 
 
+    @GetMapping("/allusers")
+    public void saveEmail()
+    {
+        itsAccessReviewService.retrieveAllUser();
+    }
 
     @GetMapping("/users/all")
     public  ResponseEntity<ReviewDTO> getUsers()
@@ -104,6 +109,11 @@ public class ITSAccessReviewController {
         return itsAccessReviewService.getNotes(personNumber);
     }
 
+   @GetMapping("/welcome")
+   public String welcomeMsg()
+   {
+       return  "Welcome to Univen";
+   }
 
 
 }

@@ -2,8 +2,10 @@ package za.co.univen.its.reviews.services;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.mail.SimpleMailMessage;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -31,6 +33,8 @@ public class ITSAccessReviewService {
     private final WebClient webClient;
 
     private final JavaMailSender javaMailSender;
+
+    private  final PasswordEncoder passwordEncoder;
 
 
     public ITSAccessReviewer retrieveReviewer(String staffNumber)
@@ -148,15 +152,15 @@ public class ITSAccessReviewService {
         for (User user : users) {
             Optional<User> optionalUser =  userRepository.findByUsername(user.getUsername());
 
-
             if(optionalUser.isEmpty())
             {
+                user.setPassword(passwordEncoder.encode(user.getPassword()));
                 userRepository.save(user);
             } else
             {
                 user.setRoles(optionalUser.get().getRoles());
                 user.setFirstname(optionalUser.get().getFirstname());
-                user.setPassword(optionalUser.get().getPassword());
+                user.setPassword(passwordEncoder.encode(optionalUser.get().getPassword()));
             }
 
         }
@@ -309,5 +313,6 @@ public class ITSAccessReviewService {
         }throw new RuntimeException( "Staff number not found");
 
     }
+
 
 }
