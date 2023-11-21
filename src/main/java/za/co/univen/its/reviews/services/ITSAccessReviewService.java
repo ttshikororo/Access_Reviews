@@ -86,6 +86,13 @@ public class ITSAccessReviewService {
             ITSAccessReviewer itsAccessReviewer = oldReviewer.get();
             itsAccessReviewer.setStatus(reviewer.getStatus());
 
+            if( itsAccessReviewer.getStatus() ==  ITSAccessReviewStatus.SUBMITTED )
+            {
+                //to manager
+            } else {
+                //to employee
+            }
+
 
             String emailBody = getEmailBody(itsAccessReviewer, supervisorNames(personNumber), true);
 
