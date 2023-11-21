@@ -58,6 +58,17 @@ public class ITSAccessReviewController {
 
         return new ResponseEntity<>(dto, HttpStatus.OK);
     }
+
+    @GetMapping("/login/{username}/{password}")
+    public ResponseEntity<ReviewDTO> login(@PathVariable String username,@PathVariable String password ) throws Exception {
+        ReviewDTO dto = new ReviewDTO();
+
+        dto.setUser(itsAccessReviewService.findUserByUsernameAndPassword( username, password ));
+
+        return new ResponseEntity<>(dto, HttpStatus.OK);
+    }
+
+
     @GetMapping("/menu/{personNumber}")
     public ResponseEntity<ReviewDTO> getITSMenus(@PathVariable String personNumber) throws Exception {
         ReviewDTO dto = new ReviewDTO();

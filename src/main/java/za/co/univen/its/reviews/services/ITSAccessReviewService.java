@@ -39,16 +39,26 @@ public class ITSAccessReviewService {
 
     public ITSAccessReviewer retrieveReviewer(String staffNumber)
     {
-        String its_url = "https://univenproduction-itsintegration.private.azuremicroservices.io/api/staff/";
-        ITSAccessReviewer reviewers = webClient
-                .get()
-                .uri(its_url + staffNumber )
-                .retrieve()
-                .bodyToMono(new ParameterizedTypeReference<ITSAccessReviewer>() {})
-                .block();
-        reviewers.setReviewDate(new Date());
-        Optional<ITSAccessReviewer> accessReviewer = itsAccessReviewerRepo.findByPersonNumber(reviewers.getPersonNumber());
-
+        ITSAccessReviewer reviewers = null;
+        Optional<ITSAccessReviewer> accessReviewer;
+        try {
+            String its_url = "https://univenproduction-itsintegration.private.azuremicroservices.io/api/staff/";
+            reviewers = webClient
+                    .get()
+                    .uri(its_url + staffNumber )
+                    .retrieve()
+                    .bodyToMono(new ParameterizedTypeReference<ITSAccessReviewer>() {})
+                    .block();
+            accessReviewer = itsAccessReviewerRepo.findByPersonNumber(reviewers.getPersonNumber());
+        } catch (Exception e)
+        {
+            accessReviewer = itsAccessReviewerRepo.findByPersonNumber(staffNumber);
+            if( accessReviewer.isEmpty() )
+            {
+                throw new IllegalArgumentException("Could not retrieve data");
+            }
+            return accessReviewer.get();
+        }
         if( accessReviewer.isEmpty() )
         {
             reviewers.setReviewDate(new Date());
@@ -233,27 +243,33 @@ public class ITSAccessReviewService {
     }
     public void saveMenuOptions()
     {
-        String its_url = "https://univenproduction-itsintegration.private.azuremicroservices.io/api/menus";
-        List<ITSAccessReviewMenu> reviewMenu = webClient
-                .get()
-                .uri(its_url )
-                .retrieve()
-                .bodyToMono(new ParameterizedTypeReference<List<ITSAccessReviewMenu> >() {})
-                .block();
+        try {
+            String its_url = "https://univenproduction-itsintegration.private.azuremicroservices.io/api/menus";
+            List<ITSAccessReviewMenu> reviewMenu = webClient
+                    .get()
+                    .uri(its_url )
+                    .retrieve()
+                    .bodyToMono(new ParameterizedTypeReference<List<ITSAccessReviewMenu> >() {})
+                    .block();
 
-        for (ITSAccessReviewMenu menu: reviewMenu  )
-        {
-            Optional<ITSAccessReviewMenu> optional = itsAccessReviewMenuRepo.findByPersonNumberAndMenuNameAndMenuOption(menu.getPersonNumber(), menu.getMenuName(), menu.getMenuOption());
-            if (optional.isEmpty())
+            for (ITSAccessReviewMenu menu: reviewMenu  )
             {
-                itsAccessReviewMenuRepo.save(menu);
+                Optional<ITSAccessReviewMenu> optional = itsAccessReviewMenuRepo.findByPersonNumberAndMenuNameAndMenuOption(menu.getPersonNumber(), menu.getMenuName(), menu.getMenuOption());
+                if (optional.isEmpty())
+                {
+                    itsAccessReviewMenuRepo.save(menu);
 
-            }else
-            {
-                menu.setNotUsed(optional.get().isNotUsed());
+                }else
+                {
+                    menu.setNotUsed(optional.get().isNotUsed());
 
+                }
             }
+        } catch( Exception ignored)
+        {
+
         }
+
     }
 
 
@@ -312,6 +328,17 @@ public class ITSAccessReviewService {
             return  names;
         }throw new RuntimeException( "Staff number not found");
 
+    }
+
+
+    public User findUserByUsernameAndPassword( String username, String password ) throws IllegalAccessException {
+        Optional<User> optionalUser = userRepository.findByUsername(username);
+
+        if( optionalUser.isEmpty() )
+        {
+            throw new IllegalAccessException("Wrong username and password");
+        }
+        return optionalUser.get();
     }
 
 
