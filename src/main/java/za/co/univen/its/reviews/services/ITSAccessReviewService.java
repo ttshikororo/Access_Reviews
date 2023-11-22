@@ -86,24 +86,32 @@ public class ITSAccessReviewService {
             ITSAccessReviewer itsAccessReviewer = oldReviewer.get();
             itsAccessReviewer.setStatus(reviewer.getStatus());
 
+            String emailBody;
             if( itsAccessReviewer.getStatus() ==  ITSAccessReviewStatus.SUBMITTED )
             {
                 //to manager
+                emailBody = getEmailBody(itsAccessReviewer, supervisorNames(personNumber), true);
+                SimpleMailMessage mailMessage = new SimpleMailMessage();
+                mailMessage.setFrom("no-reply@univen.ac.za");
+                mailMessage.setTo(getEmail(personNumber));
+                mailMessage.setText(emailBody);
+                mailMessage.setSubject("ITS access reviews 2023");
+                javaMailSender.send(mailMessage);
+
+
             } else {
                 //to employee
+
+                emailBody = getEmailBody(itsAccessReviewer, itsAccessReviewer.getSurname() + " " + itsAccessReviewer.getInitials() , false);
+                SimpleMailMessage mailMessage = new SimpleMailMessage();
+                mailMessage.setFrom("no-reply@univen.ac.za");
+                mailMessage.setTo(getEmail(personNumber));
+                mailMessage.setText(emailBody);
+                mailMessage.setSubject("ITS access reviews 2023");
+                javaMailSender.send(mailMessage);
             }
 
 
-            String emailBody = getEmailBody(itsAccessReviewer, supervisorNames(personNumber), true);
-
-            SimpleMailMessage mailMessage = new SimpleMailMessage();
-            mailMessage.setFrom("no-reply@univen.ac.za");
-            mailMessage.setTo(getEmail(personNumber));
-
-            mailMessage.setText(emailBody);
-            mailMessage.setSubject("ITS access reviews 2023");
-
-            javaMailSender.send(mailMessage);
 
             return itsAccessReviewerRepo.save(itsAccessReviewer);
 
@@ -116,7 +124,6 @@ public class ITSAccessReviewService {
 
     public List<ITSAccessReviewMenu> getMenus(String staffNumber) {
       return itsAccessReviewMenuRepo.findByPersonNumber(staffNumber);
-
 
     }
 
@@ -212,27 +219,15 @@ public class ITSAccessReviewService {
         switch (reviewer.getStatus())
         {
             case SUBMITTED:
-                   if(toApplicant)
-                   {
-                       emailBody = emailBody + "Kindly be informed that your ITS access reviews has been submitted  for approval, URL to login : https://celcatits.univen.ac.za/";
+                emailBody = emailBody + "Kindly be informed that ITS access reviews  for " + reviewer.getSurname() + " " + reviewer.getInitials() + " has been assigned to you for approval, URL to login : https://proud-beach-0319b3103.4.azurestaticapps.net/login";
 
-                   }else
-                   {
-                       emailBody = emailBody + "Kindly be informed that ITS access reviews  for " + reviewer.getSurname() + " " + reviewer.getInitials() + " has been assigned to you for approval, URL to login : https://celcatits.univen.ac.za/";
-                   }
                 break;
             case APPROVED:
-                if(toApplicant)
-                {
-                    emailBody = emailBody + "Kindly be informed that your ITS access reviews has been approved by  your HOD, URL to login : https://celcatits.univen.ac.za/";
-                }else
-                {
-                    emailBody = emailBody + "Kindly be informed that ITS access reviews  for " + reviewer.getSurname() + " " + reviewer.getInitials() + " has been assigned to you for approval, URL to login : https://celcatits.univen.ac.za/";
-                }
+                emailBody = emailBody + "Kindly be informed that your ITS access reviews has been approved by your HOD, URL to login : https://proud-beach-0319b3103.4.azurestaticapps.net/login";
+
                 break;
             case REJECTED:
-
-                    emailBody = emailBody + "Kindly be informed that ITS access reviews has been returned for corrections, URL to login : https://celcatits.univen.ac.za/";
+                emailBody = emailBody + "Kindly be informed that ITS access reviews has been returned for corrections, URL to login : https://proud-beach-0319b3103.4.azurestaticapps.net/login";
 
                 break;
 
