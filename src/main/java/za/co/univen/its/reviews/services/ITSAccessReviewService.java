@@ -90,14 +90,13 @@ public class ITSAccessReviewService {
             if( itsAccessReviewer.getStatus() ==  ITSAccessReviewStatus.SUBMITTED )
             {
                 //to manager
-                emailBody = getEmailBody(itsAccessReviewer, supervisorNames(personNumber), true);
+                emailBody = getEmailBody(itsAccessReviewer, supervisorNames(itsAccessReviewer.getSupervisor()), true);
                 SimpleMailMessage mailMessage = new SimpleMailMessage();
                 mailMessage.setFrom("no-reply@univen.ac.za");
-                mailMessage.setTo(getEmail(personNumber));
+                mailMessage.setTo(getEmail(itsAccessReviewer.getSupervisor()));
                 mailMessage.setText(emailBody);
                 mailMessage.setSubject("ITS access reviews 2023");
                 javaMailSender.send(mailMessage);
-
 
             } else {
                 //to employee
