@@ -3,6 +3,7 @@ package za.co.univen.its.reviews.controllers;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 import za.co.univen.its.reviews.dto.ReviewDTO;
 import za.co.univen.its.reviews.entities.*;
@@ -20,6 +21,7 @@ import java.util.List;
 public class ITSAccessReviewController {
 
     private final ITSAccessReviewService itsAccessReviewService;
+    private  final PasswordEncoder passwordEncoder;
 
 
 
@@ -32,7 +34,7 @@ public class ITSAccessReviewController {
         itsAccessReviewService.createNotes(dto.getComments(),itsAccessReviewService.getUserByStaffNo(dto.getUsername()),dto.getReviewer());
         }
 
-        return itsAccessReviewService.updateITSAccessReviewer(dto.getReviewer(),dto.getUsername());
+        return itsAccessReviewService.updateITSAccessReviewer(dto.getReviewer());
     }
 
     @PutMapping(value="/reviewer/menus/update")
@@ -46,8 +48,8 @@ public class ITSAccessReviewController {
     @GetMapping("/reviewer/{personNumber}")
     public ResponseEntity<ReviewDTO> getReviewer(@PathVariable String personNumber) throws Exception {
         ReviewDTO dto = new ReviewDTO();
-
-        dto.setMenus(itsAccessReviewService.getMenus(personNumber));
+        String sorted = "menuName";
+        dto.setMenus(itsAccessReviewService.getMenus(personNumber,false));
 
         dto.setReviewers(itsAccessReviewService.getReviews(personNumber));
 
@@ -64,15 +66,17 @@ public class ITSAccessReviewController {
         ReviewDTO dto = new ReviewDTO();
 
         dto.setUser(itsAccessReviewService.findUserByUsernameAndPassword( username, password ));
+        dto.getUser().setPassword(passwordEncoder.encode(dto.getUser().getPassword()));
 
         return new ResponseEntity<>(dto, HttpStatus.OK);
     }
 
 
+
     @GetMapping("/menu/{personNumber}")
     public ResponseEntity<ReviewDTO> getITSMenus(@PathVariable String personNumber) throws Exception {
         ReviewDTO dto = new ReviewDTO();
-        dto.setMenus(itsAccessReviewService.getMenus(personNumber));
+        dto.setMenus(itsAccessReviewService.getMenus(personNumber,false));
 
         dto.setNotes(itsAccessReviewService.getNotes(personNumber));
 
@@ -80,19 +84,10 @@ public class ITSAccessReviewController {
 
         dto.setReviewer(itsAccessReviewService.retrieveReviewer(personNumber));
 
+        dto.setNotUsed(itsAccessReviewService.getNotUsed(personNumber,true));
+
         dto.setNotes(itsAccessReviewService.getNotes(personNumber));
         return new ResponseEntity<>(dto, HttpStatus.OK);
-    }
-
-
-
-
-    @GetMapping("/reviewer/testuser")
-    public String  getUser()
-    {
-        //itsAccessReviewService.retrieveAllUser();
-      //itsAccessReviewService.saveMenuOptions();
-       return "User uploaded ";
     }
 
 
@@ -121,11 +116,19 @@ public class ITSAccessReviewController {
         return itsAccessReviewService.getNotes(personNumber);
     }
 
-   @GetMapping("/welcome")
-   public String welcomeMsg()
+    @GetMapping("/notusedmenu")
+    public  List<ITSAccessReviewMenu> getNotUsedMenu(){
+        return itsAccessReviewService.findNotUsedMenu(true);
+
+    }
+
+   @GetMapping("/names/{personNumber}")
+   public String getNames(@PathVariable String personNumber)
    {
-       return  "Welcome to Univen";
+       return itsAccessReviewService.getNames(personNumber);
    }
+
+
 
 
 }

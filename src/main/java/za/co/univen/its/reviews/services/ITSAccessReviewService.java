@@ -2,8 +2,8 @@ package za.co.univen.its.reviews.services;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.data.domain.Sort;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -12,6 +12,7 @@ import org.springframework.mail.javamail.JavaMailSender;
 import za.co.univen.its.reviews.repos.*;
 import za.co.univen.its.reviews.entities.*;
 
+import java.time.Year;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -35,6 +36,8 @@ public class ITSAccessReviewService {
     private final JavaMailSender javaMailSender;
 
     private  final PasswordEncoder passwordEncoder;
+
+
 
 
     public ITSAccessReviewer retrieveReviewer(String staffNumber)
@@ -63,7 +66,7 @@ public class ITSAccessReviewService {
         {
             reviewers.setReviewDate(new Date());
             reviewers = itsAccessReviewerRepo.save(reviewers);
-            reviewers.setStatus(ITSAccessReviewStatus.SAVED);
+            reviewers.setStatus(ITSAccessReviewStatus.PENDING);
         }
         else
         {
@@ -77,38 +80,45 @@ public class ITSAccessReviewService {
         return  reviewers;
     }
 
-    public ITSAccessReviewer updateITSAccessReviewer( ITSAccessReviewer reviewer,String personNumber) throws Exception {
+    public ITSAccessReviewer updateITSAccessReviewer( ITSAccessReviewer reviewer) throws Exception {
 
 
         Optional<ITSAccessReviewer> oldReviewer = itsAccessReviewerRepo.findById(reviewer.getId());
+
+        Year year = Year.now();
 
         if(oldReviewer.isPresent()){
             ITSAccessReviewer itsAccessReviewer = oldReviewer.get();
             itsAccessReviewer.setStatus(reviewer.getStatus());
 
+
             String emailBody;
-            if( itsAccessReviewer.getStatus() ==  ITSAccessReviewStatus.SUBMITTED )
-            {
-                //to manager
-                emailBody = getEmailBody(itsAccessReviewer, supervisorNames(itsAccessReviewer.getSupervisor()), true);
+
+
+
+          if( itsAccessReviewer.getStatus() ==  ITSAccessReviewStatus.SUBMITTED )
+           {
+               //to manager
+               emailBody = getEmailBody(itsAccessReviewer, getNames(itsAccessReviewer.getSupervisor()), false);
                 SimpleMailMessage mailMessage = new SimpleMailMessage();
                 mailMessage.setFrom("no-reply@univen.ac.za");
                 mailMessage.setTo(getEmail(itsAccessReviewer.getSupervisor()));
+
                 mailMessage.setText(emailBody);
-                mailMessage.setSubject("ITS access reviews 2023");
+                mailMessage.setSubject("ITS access reviews " + year);
                 javaMailSender.send(mailMessage);
 
             } else {
                 //to employee
-
-                emailBody = getEmailBody(itsAccessReviewer, itsAccessReviewer.getSurname() + " " + itsAccessReviewer.getInitials() , false);
+                emailBody = getEmailBody(itsAccessReviewer, getNames(itsAccessReviewer.getPersonNumber()) , true);
                 SimpleMailMessage mailMessage = new SimpleMailMessage();
                 mailMessage.setFrom("no-reply@univen.ac.za");
-                mailMessage.setTo(getEmail(personNumber));
+                mailMessage.setTo(getEmail(itsAccessReviewer.getPersonNumber()));
                 mailMessage.setText(emailBody);
-                mailMessage.setSubject("ITS access reviews 2023");
+                mailMessage.setSubject("ITS access reviews "+ year);
                 javaMailSender.send(mailMessage);
-            }
+           }
+
 
 
 
@@ -121,10 +131,16 @@ public class ITSAccessReviewService {
 
     }
 
-    public List<ITSAccessReviewMenu> getMenus(String staffNumber) {
-      return itsAccessReviewMenuRepo.findByPersonNumber(staffNumber);
+    public List<ITSAccessReviewMenu> getMenus(String staffNumber,boolean used) {
+      return itsAccessReviewMenuRepo.findByPersonNumberAndNotUsed(staffNumber,used);
 
     }
+
+    public List<ITSAccessReviewMenu> getNotUsed(String staffNumber,boolean used) {
+        return itsAccessReviewMenuRepo.findByPersonNumberAndNotUsed(staffNumber,used);
+
+    }
+
 
     public ITSAccessReviewMenu updateMenus(ITSAccessReviewMenu menu)
     {
@@ -200,7 +216,7 @@ public class ITSAccessReviewService {
 
     public static String getEmailBody(ITSAccessReviewer reviewer, String names, boolean toApplicant) throws Exception
     {
-
+        String string_url ="https://accessreview.univen.ac.za/";
         String emailBody = "";
         if (toApplicant)
         {
@@ -218,15 +234,20 @@ public class ITSAccessReviewService {
         switch (reviewer.getStatus())
         {
             case SUBMITTED:
-                emailBody = emailBody + "Kindly be informed that ITS access reviews  for " + reviewer.getSurname() + " " + reviewer.getInitials() + " has been assigned to you for approval, URL to login : https://proud-beach-0319b3103.4.azurestaticapps.net/login";
+
+
+                    emailBody = emailBody + "Kindly be informed that ITS access reviews  for " + reviewer.getSurname() + " " + reviewer.getInitials() + " has been assigned to you for approval, URL to login : " +string_url;
 
                 break;
             case APPROVED:
-                emailBody = emailBody + "Kindly be informed that your ITS access reviews has been approved by your HOD, URL to login : https://proud-beach-0319b3103.4.azurestaticapps.net/login";
+
+
+                    emailBody = emailBody + "Kindly be informed that your ITS access reviews has been approved by your HOD, URL to login : " + string_url;
 
                 break;
-            case REJECTED:
-                emailBody = emailBody + "Kindly be informed that ITS access reviews has been returned for corrections, URL to login : https://proud-beach-0319b3103.4.azurestaticapps.net/login";
+            case PENDING:
+
+                    emailBody = emailBody + "Kindly be informed that ITS access reviews has been returned for corrections, URL to login : " + string_url;
 
                 break;
 
@@ -238,7 +259,7 @@ public class ITSAccessReviewService {
         emailBody = emailBody + "Yours sincerely.";
         emailBody = emailBody + "\n";
         emailBody = emailBody + "\n";
-        emailBody = emailBody + "IT Team";
+        emailBody = emailBody + "Business Systems";
 
         return emailBody;
     }
@@ -272,6 +293,7 @@ public class ITSAccessReviewService {
         }
 
     }
+
 
 
     public User getUserByStaffNo(String userName) throws Exception {
@@ -318,16 +340,30 @@ public class ITSAccessReviewService {
 
     }
 
-    public String supervisorNames(String personNumber)
-    {
-        String names = "";
-        Optional<ITSAccessReviewer> byPersonNumber = itsAccessReviewerRepo.findByPersonNumber(personNumber);
 
-        if(byPersonNumber.isPresent())
+
+    public String getNames(String personNumber)
+    {
+
+        String names = "";
+        try{
+            String its_url = "https://univenproduction-itsintegration.private.azuremicroservices.io/api/staff/";
+            ITSAccessReviewer reviewers = webClient
+                    .get()
+                    .uri(its_url + personNumber )
+                    .retrieve()
+
+                    .bodyToMono(new ParameterizedTypeReference<ITSAccessReviewer>() {})
+                    .block();
+
+            names = reviewers.getSurname() + " " + reviewers.getInitials();
+            return names;
+
+        } catch (Exception e)
         {
-            names= byPersonNumber.get().getSurname() + " " + byPersonNumber.get().getInitials();
-            return  names;
-        }throw new RuntimeException( "Staff number not found");
+            throw new IllegalArgumentException("Could not retrieve data");
+        }
+
 
     }
 
@@ -340,6 +376,24 @@ public class ITSAccessReviewService {
             throw new IllegalAccessException("Wrong username and password");
         }
         return optionalUser.get();
+    }
+
+
+    public List<ITSAccessReviewMenu> findNotUsedMenu(boolean used) {
+
+        return itsAccessReviewMenuRepo.findByNotUsed(true);
+    }
+
+    public User getUser(String username)
+    {
+        Optional<User> user = userRepository.findByUsername(username);
+
+        if(user.isPresent()) {
+            user.get().setPassword(user.get().getPassword());
+            return user.get();
+        } else {
+            throw new SecurityException("User not found." + username);
+        }
     }
 
 

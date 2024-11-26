@@ -24,6 +24,7 @@ public class ReviewDTO {
     private List<User> users;
 
     private String  username;
+    private String  password;
 
     private List<CommunicationDetails> communicationDetails;
 

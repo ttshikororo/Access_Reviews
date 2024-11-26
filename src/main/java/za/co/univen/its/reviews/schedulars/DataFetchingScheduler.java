@@ -11,7 +11,6 @@ import za.co.univen.its.reviews.services.ITSAccessReviewService;
 public class DataFetchingScheduler {
     private final ITSAccessReviewService itsAccessReviewService;
 
-
     @Scheduled(cron = "0 0 20 * * *")
     public void fetchDataAndSave() {
         itsAccessReviewService.retrieveAllUser();
@@ -22,4 +21,6 @@ public class DataFetchingScheduler {
     public void fetchMenuAndSave(){
         itsAccessReviewService.saveMenuOptions();
     }
+
+
 }
